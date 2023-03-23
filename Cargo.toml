@@ -5,8 +5,19 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "astermule_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "astermule-rs"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.1.6", features = ["derive"] }
-slog = "2.7.0"
-slog-async = "2.7.0"
-slog-term = "2.9.0"
+log = "0.4.17"
+serde = "1.0.158"
+serde_derive = "1.0.158"
+thiserror = "1.0.40"
+tokio = { version = "1.26.0", features = ["rt", "macros", "rt-multi-thread"] }
+toml = "0.7.3"
