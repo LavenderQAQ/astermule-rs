@@ -29,32 +29,73 @@ pub struct Args {
     pub dag: Option<String>,
 }
 
-impl Config {
-    // pub fn set_flag(&mut self) {
-    //     self.address = Some(self.address.as_deref().unwrap_or("0.0.0.0").to_string());
-    //     self.port = self.port.or(Some(8080));
-    //     self.target = Some(self.target.as_deref().unwrap_or("/").to_string());
-    //     self.dag = Some(self.dag.as_deref().unwrap_or("{}").to_string());
-    // }
-
-    pub fn new() -> Result<Self, OptionError> {
+impl crate::option::Option for Config {
+    fn parse() -> Result<crate::option::Args, OptionError> {
         let contents =
             fs::read_to_string(TOML_FILE).or_else(|e| Err(OptionError::ConfigFileReadError(e)))?;
-        let config =
+        let mut config: Config =
             toml::from_str(&contents).or_else(|e| Err(OptionError::ConfigFileConvertError(e)))?;
 
-        Ok(config)
+        let cmd_args = Args::parse();
+
+        match config.args {
+            Args {
+                address: Some(_),
+                port: Some(_),
+                target: Some(_),
+                dag: Some(_),
+            } => {}
+            _ => {
+                return Err(OptionError::ConfigNotComplete);
+            }
+        }
+
+        if let Some(address) = cmd_args.address {
+            config.args.address = Some(address);
+        }
+
+        if let Some(port) = cmd_args.port {
+            config.args.port = Some(port);
+        }
+
+        if let Some(target) = cmd_args.target {
+            config.args.target = Some(target);
+        }
+
+        if let Some(dag) = cmd_args.dag {
+            config.args.dag = Some(dag);
+        }
+
+        Ok(crate::option::Args {
+            address: config
+                .args
+                .address
+                .ok_or(OptionError::WrongArgs("address".to_string()))?,
+            port: config
+                .args
+                .port
+                .ok_or(OptionError::WrongArgs("port".to_string()))?,
+            target: config
+                .args
+                .target
+                .ok_or(OptionError::WrongArgs("target".to_string()))?,
+            dag: config
+                .args
+                .dag
+                .ok_or(OptionError::WrongArgs("dag".to_string()))?,
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::option::Option;
+
     use super::*;
 
     #[test]
-    fn test_read_conf_toml() {
-        let args = Config::new();
-
-        println!("{:?}", args);
+    fn test_config_parse() {
+        let args = Config::parse();
+        assert!(args.is_ok())
     }
 }
